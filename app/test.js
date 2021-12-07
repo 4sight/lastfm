@@ -226,8 +226,10 @@ var LastFM = new function(){
 
   var getUsername = function getUsername(){
   	if (/postmsg/.test(window.location.href)){
-  		console.log('hello');
-  		document.getElementsByTagName('textarea')[0].defaultValue.match(urlregex){
+  		var matched = document.getElementsByTagName('textarea')[0].defaultValue.match(urlregex);
+  		if (matched && matched[1]){
+      		return matched[1];
+      	}
   	} else {
     	var matched = Page.message.defaultValue.match(urlregex);
     	if (matched && matched[1]){
@@ -236,7 +238,6 @@ var LastFM = new function(){
     }
     return;
   }
-}
 
   function canUpdate(){
     // tells us if we can update or not.
@@ -255,11 +256,12 @@ var LastFM = new function(){
   function update(skipcheck){
     if (skipcheck || canUpdate()){
       updating = true;
-      UI.setMsg('Updating...');
+      if (!/postmsg/.test(window.location.href)){
+      	UI.setMsg('Updating...');
+      };
       XHR.get(getFeedUrl(), updateCB);
       Update.check();
-    } else {
-    }
+    } else {}
   }
   // alias this because I'm too lazy to change code
   this.update = update;
@@ -297,17 +299,21 @@ var LastFM = new function(){
         var date = lfm.getElementsByTagName('date')[0].getAttribute('uts');
         me.time = nicetime(date * 1000); // they use seconds, we use ms
       }
-      UI.setUrl(me.artist, '-', me.track, '(' + me.time + ')');
-      if (Prefs.thaw('lastfm-format') != '{artist} - {track} ({time})') {
-        UI.setMsg(getUsername(), '(custom):');
-      } else {
-        UI.setMsg(getUsername() + ': ');
-      }
+      if (!/postmsg/.test(window.location.href)){
+      	UI.setUrl(me.artist, '-', me.track, '(' + me.time + ')');
+      	if (Prefs.thaw('lastfm-format') != '{artist} - {track} ({time})') {
+        	UI.setMsg(getUsername(), '(custom):');
+      	} else {
+        	UI.setMsg(getUsername() + ': ');
+      	}
+  	  }
       clearTimeout(timer);
       timer = setTimeout(update, 1000 * 60 * 2); // 2 minutes
     } else {
       var error = lfm.getElementsByTagName('error')[0];
-      UI.setMsg('Error code', error.getAttribute('code'), error.textContent);
+      if (!/postmsg/.test(window.location.href)){
+      	UI.setMsg('Error code', error.getAttribute('code'), error.textContent);
+      }
     }
   }
 

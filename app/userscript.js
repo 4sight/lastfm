@@ -250,8 +250,7 @@ var LastFM = new function(){
       UI.setMsg('Updating...');
       XHR.get(getFeedUrl(), updateCB);
       Update.check();
-    } else {
-    }
+    } else {}
   }
   // alias this because I'm too lazy to change code
   this.update = update;
