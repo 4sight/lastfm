@@ -355,7 +355,7 @@ var Page = new function(){
     me.quickpost = null;
     if (/#lastfm-help/.test(location.hash)){
       var table = document.getElementsByTagName('table')[0];
-      var sig = find_children(table, function (dom) {
+      var sig = find_children(table, function (dom){
           if (dom.nodeName === 'TD' && dom.textContent === 'Signature')
             return true;
         })[0];
@@ -405,7 +405,7 @@ var UI = new function(){
     var preview = find_children(Page.quickpost, function (dom) {
         if (dom.name == 'preview' && dom.type == 'submit') return true;
       });
-    if (preview[0]) {
+    if (preview[0]){
       preview[0].addEventListener('click', onPreview, false);
     }
   }

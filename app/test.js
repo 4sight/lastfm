@@ -2,10 +2,12 @@
 // @name           Last.fm Integration
 // @namespace      shoecream@luelinks.net
 // @description    Integrates Last.fm "Last Played" information into posts. Requires Firefox 3.
+// @include        http://boards.endoftheinter.net/postmsg.php*
 // @include        http://boards.endoftheinter.net/showmessages.php*
 // @include        http://links.endoftheinter.net/linkme.php*
 // @include        http://www.endoftheinter.net/editprofile.php*
 // @include        http://endoftheinter.net/editprofile.php*
+// @include        https://boards.endoftheinter.net/postmsg.php*
 // @include        https://boards.endoftheinter.net/showmessages.php*
 // @include        https://links.endoftheinter.net/linkme.php*
 // @include        https://www.endoftheinter.net/editprofile.php*
@@ -304,7 +306,9 @@ var LastFM = new function(){
   }
 
   this.enable = function enable(){
-    if (/quickpost-expanded/.test(document.getElementsByTagName('body')[0].className)) {
+  	var currenturl = /postmsg/.test(window.location.href);
+    if (/quickpost-expanded/.test(document.getElementsByTagName('body')[0].className) || currenturl != false) {
+      console.log('enabled');
       enabled = true;
       update();
     } else {
@@ -351,11 +355,14 @@ var Page = new function(){
     me.message.addEventListener('focus', function (e) {
         setTimeout(function () { LastFM.enable() }, 0);
       }, false)
+  } else if (/postmsg/.test(window.location.href)){
+  	console.log('hello');
+  	LastFM.enable();
   } else {
     me.quickpost = null;
     if (/#lastfm-help/.test(location.hash)){
       var table = document.getElementsByTagName('table')[0];
-      var sig = find_children(table, function (dom) {
+      var sig = find_children(table, function (dom){
           if (dom.nodeName === 'TD' && dom.textContent === 'Signature')
             return true;
         })[0];
@@ -399,7 +406,7 @@ var UI = new function(){
     var post = find_children(Page.quickpost, function (dom) {
         if (dom.name == 'post' && dom.type == 'submit') return true;
       });
-    if (post[0]) {
+    if (post[0]){
       registerPostHandlers(post[0]);
     }
     var preview = find_children(Page.quickpost, function (dom) {
