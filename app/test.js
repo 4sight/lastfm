@@ -225,22 +225,28 @@ var LastFM = new function(){
   }
 
   var getUsername = function getUsername(){
-    var matched = Page.message.defaultValue.match(urlregex);
-    if (matched && matched[1]) {
-      return matched[1];
+  	if (/postmsg/.test(window.location.href)){
+  		console.log('hello');
+  		document.getElementsByTagName('textarea')[0].defaultValue.match(urlregex){
+  	} else {
+    	var matched = Page.message.defaultValue.match(urlregex);
+    	if (matched && matched[1]){
+      		return matched[1];
+    	}
     }
     return;
   }
+}
 
   function canUpdate(){
     // tells us if we can update or not.
     if (!enabled) return false;
     if (updating) return false;
-    if (!getUsername()) {
+    if (!getUsername()){
       UI.setMsg('No Last.fm URL detected.');
       return false;
     }
-    if (new Date() - lastupdate > 1000 * 60 * 2) { // 2 minutes
+    if (new Date() - lastupdate > 1000 * 60 * 2){ // 2 minutes
       return true;
     }
     return false;
@@ -308,7 +314,6 @@ var LastFM = new function(){
   this.enable = function enable(){
   	var currenturl = /postmsg/.test(window.location.href);
     if (/quickpost-expanded/.test(document.getElementsByTagName('body')[0].className) || currenturl != false) {
-      console.log('enabled');
       enabled = true;
       update();
     } else {
@@ -356,7 +361,6 @@ var Page = new function(){
         setTimeout(function () { LastFM.enable() }, 0);
       }, false)
   } else if (/postmsg/.test(window.location.href)){
-  	console.log('hello');
   	LastFM.enable();
   } else {
     me.quickpost = null;

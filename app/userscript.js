@@ -224,7 +224,7 @@ var LastFM = new function(){
 
   var getUsername = function getUsername(){
     var matched = Page.message.defaultValue.match(urlregex);
-    if (matched && matched[1]) {
+    if (matched && matched[1]){
       return matched[1];
     }
     return;
@@ -234,11 +234,11 @@ var LastFM = new function(){
     // tells us if we can update or not.
     if (!enabled) return false;
     if (updating) return false;
-    if (!getUsername()) {
+    if (!getUsername()){
       UI.setMsg('No Last.fm URL detected.');
       return false;
     }
-    if (new Date() - lastupdate > 1000 * 60 * 2) { // 2 minutes
+    if (new Date() - lastupdate > 1000 * 60 * 2){ // 2 minutes
       return true;
     }
     return false;
