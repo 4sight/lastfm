@@ -128,7 +128,7 @@ function find_children(dom, callback){
   return stack;
 }
 
-var nicetime = (function () {
+var nicetime = (function(){
     // make a closure to show off my prowess at programming
     var periods = [
     {name: 'millisecond', interval: 1000}, // 1000 ms in a second, etc
@@ -311,11 +311,11 @@ var LastFM = new function(){
     }
   };
 
-  this.disable = function disable() {
+  this.disable = function disable(){
     enabled = false;
   };
 
-  me.rewrite = function rewrite(textbox) {
+  me.rewrite = function rewrite(textbox){
     if (!textbox) textbox = Page.message;
     var str = format();
     var url = getUrl();
@@ -347,8 +347,8 @@ var Page = new function(){
     window.addEventListener('blur', me, true);
     me.quickpost.addEventListener('click', LastFM.enable, false);
     // workaround for http://wiki.greasespot.net/0.7.20080121.0_compatibility
-    me.message.addEventListener('focus', function (e) {
-        setTimeout(function () { LastFM.enable() }, 0);
+    me.message.addEventListener('focus', function(e){
+        setTimeout(function(){ LastFM.enable() }, 0);
       }, false)
   } else {
     me.quickpost = null;
@@ -395,7 +395,7 @@ var UI = new function(){
     url.href = '#';
     url.title = 'Click to set a custom format';
     url.addEventListener('click', urlClick, false);
-    var post = find_children(Page.quickpost, function (dom) {
+    var post = find_children(Page.quickpost, function(dom){
         if (dom.name == 'post' && dom.type == 'submit') return true;
       });
     if (post[0]) {
@@ -460,7 +460,7 @@ var UI = new function(){
     e.preventDefault();
     var result = prompt("You're setting a custom Last.fm format string. Here are the tokens you can use and example results:\n{artist} - Coldplay\n{track} - Parachutes\n{time} - 2 minutes ago\n{link} - http://www.last.fm/user/example\n\nYou can also include a line break with \\n, as long as your sig is only one line long.\nIf you want to go back to the default, simply leave the text box below blank.", (Prefs.thaw('lastfm-format') || "{artist} - {track} ({time})"));
     if (result !== null) {
-      Prefs.freeze('lastfm-format', (result || "{artist} - {track} ({time})"));
+      Prefs.freeze('lastfm-format', (result || '{artist} - {track} ({time})'));
     }
   }
 

@@ -130,7 +130,7 @@ function find_children(dom, callback){
   return stack;
 }
 
-var nicetime = (function () {
+var nicetime = (function(){
     // make a closure to show off my prowess at programming
     var periods = [
     {name: 'millisecond', interval: 1000}, // 1000 ms in a second, etc
@@ -268,7 +268,7 @@ var LastFM = new function(){
 
   function format(){
     var format = Prefs.thaw('lastfm-format');
-    if (!format) format = '{artist} - {track} ({time})';
+    if (!format) format = '{artist} - {track}';
     if (Page.message.defaultValue.split('\n').length - 1 > 2) {
       // 2 line sig
       format = format.replace(/\\n/g, ' ');
@@ -292,6 +292,7 @@ var LastFM = new function(){
     if (lfm.getAttribute('status') === 'ok') {
       me.artist = lfm.getElementsByTagName('artist')[0].textContent;
       me.track = lfm.getElementsByTagName('name')[0].textContent;
+      console.log(me.artist + ' - ' + me.track);
       var track = lfm.getElementsByTagName('track')[0];
       if (track.getAttribute('nowplaying') === 'true') {
         me.time = 'just now';
@@ -301,7 +302,7 @@ var LastFM = new function(){
       }
       if (!/postmsg/.test(window.location.href)){
       	UI.setUrl(me.artist, '-', me.track, '(' + me.time + ')');
-      	if (Prefs.thaw('lastfm-format') != '{artist} - {track} ({time})') {
+      	if (Prefs.thaw('lastfm-format') != '{artist} - {track}') {
         	UI.setMsg(getUsername(), '(custom):');
       	} else {
         	UI.setMsg(getUsername() + ': ');
@@ -318,8 +319,7 @@ var LastFM = new function(){
   }
 
   this.enable = function enable(){
-  	var currenturl = /postmsg/.test(window.location.href);
-    if (/quickpost-expanded/.test(document.getElementsByTagName('body')[0].className) || currenturl != false) {
+    if (/quickpost-expanded/.test(document.getElementsByTagName('body')[0].className)) {
       enabled = true;
       update();
     } else {
@@ -327,18 +327,18 @@ var LastFM = new function(){
     }
   };
 
-  this.disable = function disable() {
+  this.disable = function disable(){
     enabled = false;
   };
 
-  me.rewrite = function rewrite(textbox) {
+  me.rewrite = function rewrite(textbox){
     if (!textbox) textbox = Page.message;
     var str = format();
-    var url = getUrl();
-    var index = textbox.value.lastIndexOf(url);
+    var lastplayed = '{artist} - {track}';
+    var index = textbox.value.lastIndexOf(lastplayed);
     if (index < 0) return;
     var before = textbox.value.substring(0, index);
-    var after = textbox.value.substring(index + url.length);
+    var after = textbox.value.substring(index + lastplayed.length);
     var newtxt = before + str + after;
     textbox.readOnly = false;
     textbox.value = newtxt;
@@ -363,10 +363,11 @@ var Page = new function(){
     window.addEventListener('blur', me, true);
     me.quickpost.addEventListener('click', LastFM.enable, false);
     // workaround for http://wiki.greasespot.net/0.7.20080121.0_compatibility
-    me.message.addEventListener('focus', function (e) {
-        setTimeout(function () { LastFM.enable() }, 0);
+    me.message.addEventListener('focus', function(e){
+        setTimeout(function(){ LastFM.enable() }, 0);
       }, false)
   } else if (/postmsg/.test(window.location.href)){
+  	me.message = document.getElementsByTagName('textarea')[0];
   	LastFM.enable();
   } else {
     me.quickpost = null;
@@ -387,6 +388,14 @@ var Page = new function(){
       textbox.parentNode.appendChild(helpdiv);
     }
   }
+}
+
+if (/postmsg/.test(window.location.href)){
+	function postmsg(){
+    	LastFM.update(true);
+		setTimeout(() => {LastFM.rewrite(Page.message)}, 1000);
+	}
+	postmsg();
 }
 
 var UI = new function(){
@@ -413,7 +422,7 @@ var UI = new function(){
     url.href = '#';
     url.title = 'Click to set a custom format';
     url.addEventListener('click', urlClick, false);
-    var post = find_children(Page.quickpost, function (dom) {
+    var post = find_children(Page.quickpost, function(dom){
         if (dom.name == 'post' && dom.type == 'submit') return true;
       });
     if (post[0]){
@@ -476,9 +485,9 @@ var UI = new function(){
 
   function urlClick(e){
     e.preventDefault();
-    var result = prompt("You're setting a custom Last.fm format string. Here are the tokens you can use and example results:\n{artist} - Coldplay\n{track} - Parachutes\n{time} - 2 minutes ago\n{link} - http://www.last.fm/user/example\n\nYou can also include a line break with \\n, as long as your sig is only one line long.\nIf you want to go back to the default, simply leave the text box below blank.", (Prefs.thaw('lastfm-format') || "{artist} - {track} ({time})"));
+    var result = prompt("You're setting a custom Last.fm format string. Here are the tokens you can use and example results:\n{artist} - Coldplay\n{track} - Parachutes\n{time} - 2 minutes ago\n{link} - http://www.last.fm/user/example\n\nYou can also include a line break with \\n, as long as your sig is only one line long.\nIf you want to go back to the default, simply leave the text box below blank.", (Prefs.thaw('lastfm-format') || "{artist} - {track}"));
     if (result !== null) {
-      Prefs.freeze('lastfm-format', (result || "{artist} - {track} ({time})"));
+      Prefs.freeze('lastfm-format', (result || '{artist} - {track}'));
     }
   }
 
