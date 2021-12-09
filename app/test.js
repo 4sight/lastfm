@@ -225,7 +225,13 @@ var LastFM = new function(){
   }
 
   var getUsername = function getUsername(){
-  	if (/postmsg/.test(window.location.href)){
+  	if (/postmsg.php\?tag=LUE/.test(window.location.href)) {
+  		var matched = document.getElementsByTagName('textarea')[1].defaultValue.match(urlregex);
+  		if (matched && matched[1]){
+      		return matched[1];
+      	}
+  	}
+  	else if (/postmsg/.test(window.location.href)){
   		var matched = document.getElementsByTagName('textarea')[0].defaultValue.match(urlregex);
   		if (matched && matched[1]){
       		return matched[1];
@@ -342,7 +348,6 @@ var LastFM = new function(){
     var newtxt = before + str + after;
     textbox.readOnly = false;
     textbox.value = newtxt;
-    textbox.readOnly = true;
   }
 };
 
@@ -366,6 +371,9 @@ var Page = new function(){
     me.message.addEventListener('focus', function(e){
         setTimeout(function(){ LastFM.enable() }, 0);
       }, false)
+  } else if (/postmsg.php\?tag=LUE/.test(window.location.href)){
+  	me.message = document.getElementsByTagName('textarea')[1];
+  	LastFM.enable();
   } else if (/postmsg/.test(window.location.href)){
   	me.message = document.getElementsByTagName('textarea')[0];
   	LastFM.enable();
@@ -392,9 +400,8 @@ var Page = new function(){
 
 if (/postmsg/.test(window.location.href) || /quickpost-expanded/.test(document.getElementsByTagName('body')[0].className)){
 	function replace(){
-		console.log('replace');
   	 	LastFM.update(true);
-		setTimeout(() => { LastFM.rewrite(Page.message) }, 500);
+		setTimeout(() => { LastFM.rewrite(Page.message) }, 1000);
 	}
 	replace();
 }
