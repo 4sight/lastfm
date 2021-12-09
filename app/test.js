@@ -256,11 +256,12 @@ var LastFM = new function(){
   function update(skipcheck){
     if (skipcheck || canUpdate()){
       updating = true;
-      if (!/postmsg/.test(window.location.href)){
+      if (!/postmsg/.test(window.location.href) && /quickpost-expanded/.test(document.getElementsByTagName('body')[0].className)){
       	UI.setMsg('Updating...');
       };
       XHR.get(getFeedUrl(), updateCB);
       Update.check();
+      setTimeout(() => { LastFM.rewrite(Page.message) }, 500);
     } else {}
   }
   // alias this because I'm too lazy to change code
@@ -292,7 +293,6 @@ var LastFM = new function(){
     if (lfm.getAttribute('status') === 'ok') {
       me.artist = lfm.getElementsByTagName('artist')[0].textContent;
       me.track = lfm.getElementsByTagName('name')[0].textContent;
-      console.log(me.artist + ' - ' + me.track);
       var track = lfm.getElementsByTagName('track')[0];
       if (track.getAttribute('nowplaying') === 'true') {
         me.time = 'just now';
@@ -390,12 +390,13 @@ var Page = new function(){
   }
 }
 
-if (/postmsg/.test(window.location.href)){
-	function postmsg(){
-    	LastFM.update(true);
-		setTimeout(() => {LastFM.rewrite(Page.message)}, 1000);
+if (/postmsg/.test(window.location.href) || /quickpost-expanded/.test(document.getElementsByTagName('body')[0].className)){
+	function replace(){
+		console.log('replace');
+  	 	LastFM.update(true);
+		setTimeout(() => { LastFM.rewrite(Page.message) }, 500);
 	}
-	postmsg();
+	replace();
 }
 
 var UI = new function(){
