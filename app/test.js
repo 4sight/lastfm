@@ -267,8 +267,8 @@ var LastFM = new function(){
       };
       XHR.get(getFeedUrl(), updateCB);
       Update.check();
-      setTimeout(() => { LastFM.rewrite(Page.message) }, 500);
-    } else {}
+      setTimeout(() => { LastFM.rewrite(Page.message) }, 2000);
+    }
   }
   // alias this because I'm too lazy to change code
   this.update = update;
@@ -296,11 +296,11 @@ var LastFM = new function(){
     lastupdate = new Date();
     updating = false;
     var lfm = r.doc.getElementsByTagName('lfm')[0];
-    if (lfm.getAttribute('status') === 'ok') {
+    if (lfm.getAttribute('status') === 'ok'){
       me.artist = lfm.getElementsByTagName('artist')[0].textContent;
       me.track = lfm.getElementsByTagName('name')[0].textContent;
       var track = lfm.getElementsByTagName('track')[0];
-      if (track.getAttribute('nowplaying') === 'true') {
+      if (track.getAttribute('nowplaying') === 'true'){
         me.time = 'just now';
       } else {
         var date = lfm.getElementsByTagName('date')[0].getAttribute('uts');
@@ -308,7 +308,7 @@ var LastFM = new function(){
       }
       if (!/postmsg/.test(window.location.href)){
       	UI.setUrl(me.artist, '-', me.track, '(' + me.time + ')');
-      	if (Prefs.thaw('lastfm-format') != '{artist} - {track}') {
+      	if (Prefs.thaw('lastfm-format') != '{artist} - {track}'){
         	UI.setMsg(getUsername(), '(custom):');
       	} else {
         	UI.setMsg(getUsername() + ': ');
@@ -399,11 +399,7 @@ var Page = new function(){
 }
 
 if (/postmsg/.test(window.location.href) || /quickpost-expanded/.test(document.getElementsByTagName('body')[0].className)){
-	function replace(){
-  	 	LastFM.update(true);
-		setTimeout(() => { LastFM.rewrite(Page.message) }, 1000);
-	}
-	replace();
+  	 LastFM.update(true);
 }
 
 var UI = new function(){

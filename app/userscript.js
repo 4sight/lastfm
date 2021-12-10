@@ -274,22 +274,22 @@ var LastFM = new function(){
       });
   }
 
-  function updateCB(r) {
+  function updateCB(r){
     lastupdate = new Date();
     updating = false;
     var lfm = r.doc.getElementsByTagName('lfm')[0];
-    if (lfm.getAttribute('status') === 'ok') {
+    if (lfm.getAttribute('status') === 'ok'){
       me.artist = lfm.getElementsByTagName('artist')[0].textContent;
       me.track = lfm.getElementsByTagName('name')[0].textContent;
       var track = lfm.getElementsByTagName('track')[0];
-      if (track.getAttribute('nowplaying') === 'true') {
+      if (track.getAttribute('nowplaying') === 'true'){
         me.time = 'just now';
       } else {
         var date = lfm.getElementsByTagName('date')[0].getAttribute('uts');
         me.time = nicetime(date * 1000); // they use seconds, we use ms
       }
       UI.setUrl(me.artist, '-', me.track, '(' + me.time + ')');
-      if (Prefs.thaw('lastfm-format') != '{artist} - {track} ({time})') {
+      if (Prefs.thaw('lastfm-format') != '{artist} - {track} ({time})'){
         UI.setMsg(getUsername(), '(custom):');
       } else {
         UI.setMsg(getUsername() + ': ');
