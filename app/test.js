@@ -339,6 +339,7 @@ var LastFM = new function(){
 
   me.rewrite = function rewrite(textbox){
     if (!textbox) textbox = Page.message;
+    var cursor = textbox.selectionStart;
     var str = format();
     var lastplayed = '{artist} - {track}';
     var index = textbox.value.lastIndexOf(lastplayed);
@@ -348,6 +349,8 @@ var LastFM = new function(){
     var newtxt = before + str + after;
     textbox.readOnly = false;
     textbox.value = newtxt;
+    textbox.focus();
+    textbox.selectionEnd = cursor;
   }
 };
 
