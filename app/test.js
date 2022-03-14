@@ -1,12 +1,14 @@
 // ==UserScript==
-// @name           Last.fm Integration
+// @name           Last.fm test
 // @namespace      shoecream@luelinks.net
 // @description    Integrates Last.fm "Last Played" information into posts. Requires Firefox 3.
+// @include        http://boards.endoftheinter.net/*
 // @include        http://boards.endoftheinter.net/postmsg.php*
 // @include        http://boards.endoftheinter.net/showmessages.php*
 // @include        http://links.endoftheinter.net/linkme.php*
 // @include        http://www.endoftheinter.net/editprofile.php*
 // @include        http://endoftheinter.net/editprofile.php*
+// @include        https://boards.endoftheinter.net/*
 // @include        https://boards.endoftheinter.net/postmsg.php*
 // @include        https://boards.endoftheinter.net/showmessages.php*
 // @include        https://links.endoftheinter.net/linkme.php*
@@ -18,42 +20,6 @@
 // @changes        Workaround what appears to be a FF4 nsDOMImplementation::CreateDocument change
 // ==/UserScript==
 
-var Update = {};
-Update.id = 43213;
-Update.curVersion = 11;
-Update.callback = function(){
-  if (Update.keys.version > Update.curVersion) {
-    var upd = document.getElementById('lastfm-update');
-    if (!upd) {
-      UI.setMsg('Filler message for updating')
-      upd = document.getElementById('lastfm-update');
-    }
-    upd.style.display = 'inline';
-    upd.title = Update.keys.changes;
-  }
-};
-Update.check = function () {
-  if (!Update.id)         { return; }
-  if (!Update.curVersion) { return; }
-  if (Update.keys && Update.keys['version'])  { Update.callback(); }
-  var url = 'https://userscripts-mirror.org/scripts/source/' + Update.id + '.meta.js';
-  // XHR.get(url, Update.onXHR);
-}/*
-Update.onXHR = function (response) {
-  var splat = response.responseText.split(/[\r\n]/);
-  var keys = {};
-  for (i in splat) {
-    if (!splat[i]) continue;
-    var matches = splat[i].match(/@([\w:]+)\s+(.+)/);
-    if (!matches) continue;
-    keys[matches[1]] = matches[2];
-  }
-  // set update keys
-  Update.keys = keys;
-  if (keys['version'] && (keys['version'] != Update.curVersion)) {
-    Update.callback();
-  }
-}*/
 var XHR = {};
 XHR.createDoc = function(r, callback){
   var doc = document.implementation.createDocument('','',null);
@@ -81,16 +47,6 @@ XHR.createQueryString = function(obj){
   }
   return ret.join('&');
 }
-var Prefs = {};
-Prefs.freeze = function(key, obj){
-  GM_setValue(key, obj.toSource())
-}
-Prefs.thaw = function (key) {
-  var obj = GM_getValue(key);
-  // lol eval is dangerous xmfd
-  return eval(obj);
-}
-
 String.prototype.supplant = function (o) {
   return this.replace(/{([^{}]*)}/g,
     function (a, b) {
@@ -99,36 +55,6 @@ String.prototype.supplant = function (o) {
     }
   );
 };
-
-function find_parent (dom, callback) {
-  if (typeof callback != 'function') throw new TypeError();
-  do {
-    if (callback(dom.parentNode)) {
-      return dom.parentNode;
-    }
-  } while (dom = dom.parentNode);
-  return;
-}
-
-function find_children(dom, callback){
-  if (typeof callback != 'function') throw new TypeError();
-  var stack = [];
-  var children = dom.childNodes;
-  for (var i = 0; i < children.length; i++) {
-    if (callback(children[i]))
-      stack.push(children[i]);
-    if (children[i].hasChildNodes()) {
-      var newstack = find_children(children[i], callback);
-      if (newstack.length) {
-        // flatten the array
-        for (var j = 0; j < newstack.length; j++) {
-          stack.push(newstack[j]);
-        }
-      }
-    }
-  }
-  return stack;
-}
 
 var nicetime = (function(){
     // make a closure to show off my prowess at programming
@@ -225,22 +151,22 @@ var LastFM = new function(){
   }
 
   var getUsername = function getUsername(){
-  	if (/postmsg.php\?tag=LUE/.test(window.location.href)) {
-  		var matched = document.getElementsByTagName('textarea')[1].defaultValue.match(urlregex);
-  		if (matched && matched[1]){
-      		return matched[1];
-      	}
-  	}
-  	else if (/postmsg/.test(window.location.href)){
-  		var matched = document.getElementsByTagName('textarea')[0].defaultValue.match(urlregex);
-  		if (matched && matched[1]){
-      		return matched[1];
-      	}
-  	} else {
-    	var matched = Page.message.defaultValue.match(urlregex);
-    	if (matched && matched[1]){
-      		return matched[1];
-    	}
+    if (/postmsg.php\?tag=LUE/.test(window.location.href)) {
+      var matched = document.getElementsByTagName('textarea')[1].defaultValue.match(urlregex);
+      if (matched && matched[1]){
+          return matched[1];
+        }
+    }
+    else if (/postmsg/.test(window.location.href)){
+      var matched = document.getElementsByTagName('textarea')[0].defaultValue.match(urlregex);
+      if (matched && matched[1]){
+          return matched[1];
+        }
+    } else {
+      var matched = document.getElementsByClassName('quickpost')[0].getElementsByTagName('textarea')[0].defaultValue.match(urlregex);
+      if (matched && matched[1]){
+          return matched[1];
+      }
     }
     return;
   }
@@ -260,14 +186,12 @@ var LastFM = new function(){
   }
 
   function update(skipcheck){
-    if (skipcheck || canUpdate()){
+    if (1 === 1 || skipcheck || canUpdate()){
       updating = true;
       if (!/postmsg/.test(window.location.href) && /quickpost-expanded/.test(document.getElementsByTagName('body')[0].className)){
-      	UI.setMsg('Updating...');
+        UI.setMsg('Updating...');
       };
       XHR.get(getFeedUrl(), updateCB);
-      Update.check();
-      setTimeout(() => { LastFM.rewrite(Page.message) }, 2000);
     }
   }
   // alias this because I'm too lazy to change code
@@ -306,52 +230,14 @@ var LastFM = new function(){
         var date = lfm.getElementsByTagName('date')[0].getAttribute('uts');
         me.time = nicetime(date * 1000); // they use seconds, we use ms
       }
-      if (!/postmsg/.test(window.location.href)){
-      	UI.setUrl(me.artist, '-', me.track, '(' + me.time + ')');
-      	if (Prefs.thaw('lastfm-format') != '{artist} - {track}'){
-        	UI.setMsg(getUsername(), '(custom):');
-      	} else {
-        	UI.setMsg(getUsername() + ': ');
-      	}
-  	  }
       clearTimeout(timer);
       timer = setTimeout(update, 1000 * 60 * 2); // 2 minutes
+      console.log(me.artist + ' - ' + me.track);
     } else {
       var error = lfm.getElementsByTagName('error')[0];
-      if (!/postmsg/.test(window.location.href)){
-      	UI.setMsg('Error code', error.getAttribute('code'), error.textContent);
-      }
     }
   }
-
-  this.enable = function enable(){
-    if (/quickpost-expanded/.test(document.getElementsByTagName('body')[0].className)) {
-      enabled = true;
-      update();
-    } else {
-      enabled = false;
-    }
-  };
-
-  this.disable = function disable(){
-    enabled = false;
-  };
-
-  me.rewrite = function rewrite(textbox){
-    if (!textbox) textbox = Page.message;
-    var cursor = textbox.selectionStart;
-    var str = format();
-    var lastplayed = '{artist} - {track}';
-    var index = textbox.value.lastIndexOf(lastplayed);
-    if (index < 0) return;
-    var before = textbox.value.substring(0, index);
-    var after = textbox.value.substring(index + lastplayed.length);
-    var newtxt = before + str + after;
-    textbox.readOnly = false;
-    textbox.value = newtxt;
-    textbox.focus();
-    textbox.selectionEnd = cursor;
-  }
+  this.update();
 };
 
 var Page = new function(){
@@ -375,11 +261,11 @@ var Page = new function(){
         setTimeout(function(){ LastFM.enable() }, 0);
       }, false)
   } else if (/postmsg.php\?tag=LUE/.test(window.location.href)){
-  	me.message = document.getElementsByTagName('textarea')[1];
-  	LastFM.enable();
+    me.message = document.getElementsByTagName('textarea')[1];
+    LastFM.enable();
   } else if (/postmsg/.test(window.location.href)){
-  	me.message = document.getElementsByTagName('textarea')[0];
-  	LastFM.enable();
+    me.message = document.getElementsByTagName('textarea')[0];
+    LastFM.enable();
   } else {
     me.quickpost = null;
     if (/#lastfm-help/.test(location.hash)){
@@ -398,117 +284,5 @@ var Page = new function(){
       helpdiv.style.color = 'red';
       textbox.parentNode.appendChild(helpdiv);
     }
-  }
-}
-
-if (/postmsg/.test(window.location.href) || /quickpost-expanded/.test(document.getElementsByTagName('body')[0].className)){
-  	 LastFM.update(true);
-}
-
-var UI = new function(){
-  var me = this;
-  var ui;
-  var msg;
-  var url;
-  var help;
-
-  function createUI(){
-    if (ui) return;
-    var span = document.createElement('span');
-    span.id = 'lastfm-ui';
-    span.setAttribute('style', 'position: relative; right: -1em');
-    span.innerHTML = '<b>Last.fm<a id="lastfm-update" href="https://userscripts-mirror.org/scripts/source/43213.user.js" style="display:none">(updates available!)</a>:</b> <span id="lastfm-msg"></span> <a id="lastfm-url" onclick="return false"></a> <a id="lastfm-help"></a>';
-    Page.body.appendChild(span);
-    ui = span;
-    msg = document.getElementById('lastfm-msg');
-    url = document.getElementById('lastfm-url');
-    help = document.getElementById('lastfm-help');
-    help.textContent = '(help)';
-    help.href = '//endoftheinter.net/editprofile.php#lastfm-help';
-    me.setMsg('Last.fm loading...');
-    url.href = '#';
-    url.title = 'Click to set a custom format';
-    url.addEventListener('click', urlClick, false);
-    var post = find_children(Page.quickpost, function(dom){
-        if (dom.name == 'post' && dom.type == 'submit') return true;
-      });
-    if (post[0]){
-      registerPostHandlers(post[0]);
-    }
-    var preview = find_children(Page.quickpost, function (dom) {
-        if (dom.name == 'preview' && dom.type == 'submit') return true;
-      });
-    if (preview[0]) {
-      preview[0].addEventListener('click', onPreview, false);
-    }
-  }
-
-  var onPost = new function(){
-    var save;
-    function doPost(){
-      LastFM.rewrite(Page.message);
-      LastFM.update(true);
-    }
-    this.handleEvent = function onPost_handleEvent(e){
-      switch (e.type){
-      case 'mousedown':
-        save = e.target;
-        break;
-      case 'mouseup':
-        if (save == e.target)
-          doPost();
-        break;
-      case 'keypress':
-        if (e.keyCode == 13 || e.charCode == 32)
-          doPost();
-        break;
-      }
-    }
-  };
-
-  function onPreview(e){
-    function onPreviewInsert(e){
-      // preview is made using async-post.php which isn't instant
-      if (e.target && e.target.className == 'quickpost-buttons'){
-        document.removeEventListener('DOMNodeInserted', onPreviewInsert, false);
-        var post = find_children(e.target, function (dom){
-            if (dom.value == 'Post Message') return true;
-          });
-        registerPostHandlers(post[0]);
-      }
-    }
-    document.addEventListener('DOMNodeInserted', onPreviewInsert, false);
-  }
-
-
-  function registerPostHandlers(node){
-    // Quickpost registers on click. DOM mouse event firing order is
-    // mousedown - mouseup - click. We need to be a split second faster than
-    // quickpost so we register on mouseup instead of click
-    node.addEventListener('mousedown', onPost, false);
-    node.addEventListener('mouseup', onPost, false);
-    node.addEventListener('keypress', onPost, false);
-  }
-
-  function urlClick(e){
-    e.preventDefault();
-    var result = prompt("You're setting a custom Last.fm format string. Here are the tokens you can use and example results:\n{artist} - Coldplay\n{track} - Parachutes\n{time} - 2 minutes ago\n{link} - http://www.last.fm/user/example\n\nYou can also include a line break with \\n, as long as your sig is only one line long.\nIf you want to go back to the default, simply leave the text box below blank.", (Prefs.thaw('lastfm-format') || "{artist} - {track}"));
-    if (result !== null) {
-      Prefs.freeze('lastfm-format', (result || '{artist} - {track}'));
-    }
-  }
-
-  this.setMsg = function setMsg(/* variadic */){
-    var message = Array.prototype.join.call(arguments, ' ');
-    if (!ui) createUI();
-    if (!msg) createUI(); // hurr
-    msg.textContent = message;
-  }
-
-  this.setUrl = function(/* variadic */){
-    var message = Array.prototype.join.call(arguments, ' ');
-    if (!ui) createUI();
-    if (!url) createUI();
-    url.textContent = message;
   }
 }
