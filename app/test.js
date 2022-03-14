@@ -198,8 +198,7 @@ var LastFM = new function(){
   this.update = update;
 
   function format(){
-    var format = Prefs.thaw('lastfm-format');
-    if (!format) format = '{artist} - {track}';
+    var format = '{artist} - {track}';
     if (Page.message.defaultValue.split('\n').length - 1 > 2) {
       // 2 line sig
       format = format.replace(/\\n/g, ' ');
@@ -238,13 +237,28 @@ var LastFM = new function(){
     }
   }
   this.update();
+
+  this.rewrite = function rewrite(textbox){
+    if (!textbox) textbox = Page.message;
+    var cursor = textbox.selectionStart;
+    var str = format();
+    var lastplayed = '{artist} - {track}';
+    var index = textbox.value.lastIndexOf(lastplayed);
+    if (index < 0) return;
+    var before = textbox.value.substring(0, index);
+    var after = textbox.value.substring(index + lastplayed.length);
+    var newtxt = before + str + after;
+    textbox.readOnly = false;
+    textbox.value = newtxt;
+    textbox.focus();
+    textbox.selectionEnd = cursor;
+  }
 };
 
 var Page = new function(){
   var me = this;
   me.handleEvent = function(e){
     if (e.target != window) return;
-    LastFM.enable();
   }
 
   me.quickpost = document.getElementsByClassName('quickpost');
@@ -258,14 +272,12 @@ var Page = new function(){
     me.quickpost.addEventListener('click', LastFM.enable, false);
     // workaround for http://wiki.greasespot.net/0.7.20080121.0_compatibility
     me.message.addEventListener('focus', function(e){
-        setTimeout(function(){ LastFM.enable() }, 0);
+        setTimeout(function(){ LastFM.rewrite() }, 0);
       }, false)
   } else if (/postmsg.php\?tag=LUE/.test(window.location.href)){
     me.message = document.getElementsByTagName('textarea')[1];
-    LastFM.enable();
   } else if (/postmsg/.test(window.location.href)){
     me.message = document.getElementsByTagName('textarea')[0];
-    LastFM.enable();
   } else {
     me.quickpost = null;
     if (/#lastfm-help/.test(location.hash)){
