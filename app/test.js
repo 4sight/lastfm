@@ -114,9 +114,9 @@ if (!Array.prototype.map){
 
 var LastFM = new function(){
   var me = this; // because I don't know how 'this' works
-  me.artist = '';
-  me.track = '';
-  me.time = '';
+  this.artist = '';
+  this.track = '';
+  this.time = '';
   var enabled = false;
   var updating = false;
   var lastupdate = 0; // dates are objects but compared as integers
@@ -186,7 +186,7 @@ var LastFM = new function(){
   }
 
   function update(skipcheck){
-    if (1 === 1 || skipcheck || canUpdate()){
+    if (skipcheck || canUpdate()){
       updating = true;
       if (!/postmsg/.test(window.location.href) && /quickpost-expanded/.test(document.getElementsByTagName('body')[0].className)){
         UI.setMsg('Updating...');
@@ -232,11 +232,16 @@ var LastFM = new function(){
       clearTimeout(timer);
       timer = setTimeout(update, 1000 * 60 * 2); // 2 minutes
       console.log(me.artist + ' - ' + me.track);
+      if (/postmsg.php\?tag=LUE/.test(window.location.href)){
+        Page.message = document.getElementsByTagName('textarea')[1];
+      } else {
+        Page.message = document.getElementsByTagName('textarea')[0];
+        setTimeout(() => { LastFM.rewrite() }, 0);
+      }
     } else {
       var error = lfm.getElementsByTagName('error')[0];
     }
   }
-  this.update();
 
   this.rewrite = function rewrite(textbox){
     if (!textbox) textbox = Page.message;
@@ -260,8 +265,8 @@ var Page = new function(){
   me.handleEvent = function(e){
     if (e.target != window) return;
   }
-
   me.quickpost = document.getElementsByClassName('quickpost');
+  LastFM.update(true);
   if (me.quickpost.length){
     me.quickpost = me.quickpost[0];
     me.canvas = me.quickpost.getElementsByClassName('quickpost-canvas')[0];
@@ -272,12 +277,13 @@ var Page = new function(){
     me.quickpost.addEventListener('click', LastFM.enable, false);
     // workaround for http://wiki.greasespot.net/0.7.20080121.0_compatibility
     me.message.addEventListener('focus', function(e){
-        setTimeout(function(){ LastFM.rewrite() }, 0);
-      }, false)
+      LastFM.rewrite();
+    }, false)
   } else if (/postmsg.php\?tag=LUE/.test(window.location.href)){
     me.message = document.getElementsByTagName('textarea')[1];
   } else if (/postmsg/.test(window.location.href)){
     me.message = document.getElementsByTagName('textarea')[0];
+    setTimeout(() => { LastFM.rewrite() }, 0);
   } else {
     me.quickpost = null;
     if (/#lastfm-help/.test(location.hash)){
