@@ -114,9 +114,9 @@ if (!Array.prototype.map){
 
 var LastFM = new function(){
   var me = this; // because I don't know how 'this' works
-  this.artist = '';
-  this.track = '';
-  this.time = '';
+  me.artist = '';
+  me.track = '';
+  me.time = '';
   var enabled = false;
   var updating = false;
   var lastupdate = 0; // dates are objects but compared as integers
@@ -133,7 +133,7 @@ var LastFM = new function(){
     return 'http://www.last.fm/user/' + usr;
   }
 
-  this.getFeedUrl = function getFeedUrl(usr){
+  function getFeedUrl(usr){
     if (!usr){
       usr = getUsername();
       if (!usr)
@@ -186,12 +186,12 @@ var LastFM = new function(){
   }
 
   function update(skipcheck){
-    if (skipcheck || canUpdate()){
+    if (1 === 1 || skipcheck || canUpdate()){
       updating = true;
       if (!/postmsg/.test(window.location.href) && /quickpost-expanded/.test(document.getElementsByTagName('body')[0].className)){
         UI.setMsg('Updating...');
       };
-      XHR.get(this.getFeedUrl, this.updateCB);
+      XHR.get(getFeedUrl(), updateCB);
     }
   }
   // alias this because I'm too lazy to change code
@@ -215,7 +215,7 @@ var LastFM = new function(){
       });
   }
 
-  this.updateCB = function updateCB(r) {
+  function updateCB(r) {
     lastupdate = new Date();
     updating = false;
     var lfm = r.doc.getElementsByTagName('lfm')[0];
@@ -276,10 +276,8 @@ var Page = new function(){
       }, false)
   } else if (/postmsg.php\?tag=LUE/.test(window.location.href)){
     me.message = document.getElementsByTagName('textarea')[1];
-    setTimeout(function(){ LastFM.rewrite() }, 0);
   } else if (/postmsg/.test(window.location.href)){
     me.message = document.getElementsByTagName('textarea')[0];
-    setTimeout(function(){ LastFM.rewrite() }, 0);
   } else {
     me.quickpost = null;
     if (/#lastfm-help/.test(location.hash)){
